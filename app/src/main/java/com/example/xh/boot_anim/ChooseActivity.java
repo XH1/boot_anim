@@ -220,7 +220,7 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
                             Bitmap nextFrame = gifDecoder.getNextFrame();
                             currentBitmapList.add(nextFrame);
                             map.put("img", nextFrame);
-                            map.put("text", "第" + current + "帧");
+                            map.put("text", "第1" + current + "帧");
                             list.add(map);
                         }
                         Log.i("tag", currentBitmapList.size() + "一");
