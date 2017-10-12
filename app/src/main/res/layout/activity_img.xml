@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#d4d1d1">
+
+    <com.example.xh.boot_anim.dialogclasses.DirectionListview
+        android:id="@+id/listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        android:visibility="invisible"></com.example.xh.boot_anim.dialogclasses.DirectionListview>
+
+    <LinearLayout
+        android:id="@+id/btn_layout"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_backup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="备份动画" />
+
+        <Button
+            android:id="@+id/btn_choose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="选择照片" />
+
+        <Button
+            android:id="@+id/btn_create"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="生成BootAnimation.zip" />
+    </LinearLayout>
+
+
+</RelativeLayout>
