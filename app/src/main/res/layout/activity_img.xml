@@ -1,41 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#d4d1d1">
+    android:background="#ffffff"
+    android:orientation="vertical">
 
-    <com.example.xh.boot_anim.dialogclasses.DirectionListview
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="150dp">
+
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:contentScrim="@color/toolbarColor"
+            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_collapseMode="parallax"
+                app:layout_collapseParallaxMultiplier="0.9">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/tb_back" />
+
+                <TextView
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_margin="10dp"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    style="@style/toolbarText"
+                    android:textSize="17sp"
+                    android:text="@string/author" />
+            </RelativeLayout>
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/btn_layout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+
+                android:orientation="horizontal"
+                app:contentInsetEnd="0dp"
+                app:contentInsetStart="0dp"
+                app:layout_collapseMode="pin">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <Button
+                        android:id="@+id/btn_backup"
+                        style="@style/toolbarText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/selector"
+                        android:text="备份动画" />
+
+                    <Button
+                        android:id="@+id/btn_choose"
+                        style="@style/toolbarText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/selector"
+                        android:text="选择照片" />
+
+                    <Button
+                        android:id="@+id/btn_create"
+                        style="@style/toolbarText"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/selector"
+                        android:text="生成BootAnimation.zip" />
+                </LinearLayout>
+            </android.support.v7.widget.Toolbar>
+        </android.support.design.widget.CollapsingToolbarLayout>
+
+
+    </android.support.design.widget.AppBarLayout>
+
+    <!--因为是v7包中的而不是原生sdk中的，所以要使用app：前缀而不是android：-->
+
+
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/listview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="10dp"
-        android:visibility="invisible"></com.example.xh.boot_anim.dialogclasses.DirectionListview>
+        android:layout_below="@+id/btn_layout"
+        android:layout_margin="10dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"></android.support.v7.widget.RecyclerView>
 
-    <LinearLayout
-        android:id="@+id/btn_layout"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <Button
-            android:id="@+id/btn_backup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="备份动画" />
-
-        <Button
-            android:id="@+id/btn_choose"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="选择照片" />
-
-        <Button
-            android:id="@+id/btn_create"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="生成BootAnimation.zip" />
-    </LinearLayout>
-
-
-</RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>

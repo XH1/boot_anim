@@ -1,5 +1,6 @@
 package com.example.xh.boot_anim;
 
+import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -11,8 +12,23 @@ import java.io.InputStreamReader;
  * Created by xh on 2017/10/3.
  */
 
-public class RootManager {
-    public static boolean getRootPrivilege(String[] cmds) {
+enum RootManager {
+    ROOT_MANAGER;
+    private Context context;
+
+    public static RootManager getInstance() {
+        return ROOT_MANAGER;
+    }
+
+    public interface RootFailureListener {
+        void rootFailure();
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    public boolean getRootPrivilege(String[] cmds) {
         Process process = null;
         DataOutputStream dos = null;
         BufferedReader errReader = null;
@@ -20,6 +36,7 @@ public class RootManager {
         //String cmd = "mount -o rw,remount /system";
         try {
             process = Runtime.getRuntime().exec("su\n");
+            Thread.sleep(300);
             dos = new DataOutputStream(process.getOutputStream());
             errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             inReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -33,7 +50,7 @@ public class RootManager {
             String data = "";
             String err = "";
             while ((err = errReader.readLine()) != null && !err.equals("null")) {
-                data += err + "\n";
+                data += "e" + err + "\n";
             }
             String in = "";
             while ((in = inReader.readLine()) != null && !in.equals("null")) {
@@ -42,6 +59,7 @@ public class RootManager {
             Log.i("tag", data);
         } catch (Exception e) {
             e.printStackTrace();
+            ((RootFailureListener) context).rootFailure();
             return false;
         } finally {
             try {

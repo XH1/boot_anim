@@ -41,9 +41,8 @@ enum ZipManager {
     }
 
     public boolean backup(String path) {
-        if (RootManager.getRootPrivilege(new String[]{"mount -o rw,remount /system"}) && RootManager.getRootPrivilege(new String[]{"cp /system/media/bootanimation.zip " + path})) {
-
-            RootManager.getRootPrivilege(new String[]{"mount -o ro,remount /system"});
+        if (RootManager.getInstance().getRootPrivilege(new String[]{"mount -o rw,remount /system"}) && RootManager.getInstance().getRootPrivilege(new String[]{"cp /system/media/bootanimation.zip " + path})) {
+            RootManager.getInstance().getRootPrivilege(new String[]{"mount -o ro,remount /system"});
             return true;
         }
         return false;
@@ -52,7 +51,7 @@ enum ZipManager {
     class ZipThread extends Thread {
         @Override
         public void run() {
-            if (RootManager.getRootPrivilege(new String[]{"mount -o rw,remount /system"})) {
+            if (RootManager.getInstance().getRootPrivilege(new String[]{"mount -o rw,remount /system"})) {
 
                 uiHandler.post(new Runnable() {
                     @Override
@@ -75,7 +74,7 @@ enum ZipManager {
                         Toast.makeText(context, "压缩成功！", Toast.LENGTH_SHORT).show();
                     }
                 });
-                RootManager.getRootPrivilege(new String[]{"mv " + context.getFilesDir() + "/bootanimation.zip /system/media/", "chmod 644 /system/media/bootanimation.zip" + "", "rm -r " + context.getFilesDir() + "/bootanimation", "mount -o ro,remount /system"});
+                RootManager.getInstance().getRootPrivilege(new String[]{"mv " + context.getFilesDir() + "/bootanimation.zip /system/media/", "chmod 644 /system/media/bootanimation.zip" + "", "rm -r " + context.getFilesDir() + "/bootanimation", "mount -o ro,remount /system"});
             }
 
         }
@@ -89,21 +88,6 @@ enum ZipManager {
         mpd = new MyProgressDialog(context);
         final ZipThread zipThread = new ZipThread();
         zipThread.start();
-        /*new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (!zipThread.isAlive()) {
-                    mpd.dismiss();
-                    cancel();
-                    uiHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(context, "压缩完成", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-        } ,1500,500);*/
     }
 
 

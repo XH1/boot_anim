@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -12,12 +11,13 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -26,70 +26,45 @@ import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.xh.boot_anim.dialogclasses.ConfigFragment;
-import com.example.xh.boot_anim.dialogclasses.DirectionListview;
+import com.example.xh.boot_anim.dialogclasses.ImgAdapter;
 import com.example.xh.boot_anim.dialogclasses.MyFragment;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 
 /**
  * Created by xh on 2017/10/4.
  */
 
-public class ChooseActivity extends AppCompatActivity implements View.OnClickListener, ConfigFragment.ConfigReturn {
-    private LinearLayout btnLayout;
+public class ChooseActivity extends AppCompatActivity implements View.OnClickListener, ConfigFragment.ConfigReturn, RootManager.RootFailureListener {
+    private Toolbar btnLayout;
     private Button btnCreate;
     private Button btnChoose;
     private Button btnBackup;
     private ImageView imgShow;
-    private DirectionListview listView;
-    private int[] to = {R.id.item_img, R.id.item_text};
-    private String[] from = {"img", "text"};
+    private RecyclerView listView;
     private List<Bitmap> currentBitmapList;//当前选中图片的帧
-    private List<Map<String, Object>> list;
-    private SimpleAdapter simpleAdpter;
     private Handler handler;
+    private View headerView;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_img);
-        getRoot();
+        RootManager.getInstance().setContext(this);
+        RootManager.getInstance().getRootPrivilege(new String[]{""});
         init();
-
-    }
-
-    private void getRoot() {
-        if (!RootManager.getRootPrivilege(new String[]{""})) {
-            new MyFragment("提示", "请授予root权限").show(getFragmentManager(), "get_root_false");
-            System.exit(0);
-        }
     }
 
     private void init() {
-        btnLayout = (LinearLayout) findViewById(R.id.btn_layout);
+        btnLayout = (Toolbar) findViewById(R.id.btn_layout);
         btnChoose = (Button) findViewById(R.id.btn_choose);
-        imgShow = new ImageView(this);
-        imgShow.setMaxHeight(300);
-        imgShow.setMaxWidth(400);
-        imgShow.setAdjustViewBounds(true);
-        listView = (DirectionListview) findViewById(R.id.listview);
-        listView.setScrollDirectionListener(new DirectionListview.onScrollDirectionListener() {
-            @Override
-            public void onScrollUp() {
-                btnLayout.setVisibility(View.VISIBLE);
-            }
+        headerView = View.inflate(ChooseActivity.this, R.layout.activity_headerview, null);
+        imgShow = (ImageView) headerView.findViewById(R.id.imgShow);
 
-            @Override
-            public void onScrollDown() {
-                btnLayout.setVisibility(View.INVISIBLE);
-            }
-        });
-        listView.addHeaderView(imgShow);
+        listView = (RecyclerView) findViewById(R.id.listview);
         btnBackup = (Button) findViewById(R.id.btn_backup);
         btnCreate = (Button) findViewById(R.id.btn_create);
         btnChoose.setOnClickListener(this);
@@ -97,7 +72,9 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
         btnCreate.setOnClickListener(this);
         currentBitmapList = new ArrayList<>();
         handler = new Handler();
-        list = new ArrayList<Map<String, Object>>();
+
+        listView.setLayoutManager(new LinearLayoutManager(this));
+        listView.setAdapter(new ImgAdapter(this, currentBitmapList));
         canShowCreateButton();
     }
 
@@ -112,11 +89,19 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
                 cf.show(getFragmentManager(), "config");
                 break;
             case R.id.btn_backup:
-                if (ZipManager.newInstance().backup(getFilesDir().toString() + "/bootanimation.zip.backup")) {
-                    Toast.makeText(this, "bootanimation已保存到" + getFilesDir().toString(), Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, "备份失败", Toast.LENGTH_LONG).show();
-                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (ZipManager.newInstance().backup(getFilesDir().toString() + "/bootanimation.zip.backup")) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(ChooseActivity.this, "bootanimation已保存到" + getFilesDir().toString(), Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
+                    }
+                }).start();
                 break;
         }
     }
@@ -149,7 +134,6 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
 
     private void showImg() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        //intent.setData();
         intent.setType("image/gif");
         startActivityForResult(intent, 2);
     }
@@ -162,9 +146,8 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
                     Toast.makeText(this, "未选择", Toast.LENGTH_SHORT).show();
                     break;
                 }
-                String imgPath = ImgUtils.getImgPath(ChooseActivity.this, data);
+                final String imgPath = ImgUtils.getImgPath(ChooseActivity.this, data);
                 if (imgPath != null) {
-                    //imgShow.setImageBitmap(BitmapFactory.decodeFile(imgPath));
                     showListview(imgPath);
                 }
                 break;
@@ -175,7 +158,7 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
 
     private void showListview(String gifPath) {
         //setAdapter后listview才会有显示，才会加载addheaderview，glide..into(headerview)才会生效
-        listView.setAdapter(null);
+
         Glide.with(this)
                 .load(new File(gifPath))
                 .asGif()
@@ -186,9 +169,9 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
                         MyFragment m = new MyFragment("提示", "请选择gif格式的图片");
                         m.show(getFragmentManager(), "notice");
                         //清空listview和当前的帧
-                        listView.setAdapter(null);
-                        list.clear();
                         currentBitmapList.clear();
+                        listView.setAdapter(new ImgAdapter(ChooseActivity.this, currentBitmapList));
+
                         canShowCreateButton();
                         return false;
                     }
@@ -197,36 +180,20 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
                     public boolean onResourceReady(GifDrawable gifDrawable, File file, Target<GifDrawable> target, boolean b, boolean b1) {
                         Log.i("tag", "xxxx");
                         GifDecoder gifDecoder = gifDrawable.getDecoder();
-                        list.clear();
                         currentBitmapList.clear();
-                        simpleAdpter = new SimpleAdapter(ChooseActivity.this, list, R.layout.activity_listview_item, from, to);
-                        simpleAdpter.setViewBinder(new SimpleAdapter.ViewBinder() {
-                            @Override
-                            public boolean setViewValue(View view, Object data, String textRepresentation) {
-                                if ((view instanceof ImageView) & (data instanceof Bitmap)) {
-                                    ImageView iv = (ImageView) view;
-                                    Bitmap bm = (Bitmap) data;
-                                    iv.setImageBitmap(bm);
-                                    return true;
-                                }
-                                return false;
-                            }
-                        });
                         int count = gifDrawable.getFrameCount();
-                        Toast.makeText(ChooseActivity.this, count + "帧", Toast.LENGTH_SHORT).show();
                         for (int current = 0; current < count; current++) {
-                            Map<String, Object> map = new HashMap<String, Object>();
                             gifDecoder.advance();
                             Bitmap nextFrame = gifDecoder.getNextFrame();
                             currentBitmapList.add(nextFrame);
-                            map.put("img", nextFrame);
-                            map.put("text", "第" + current + "帧");
-                            list.add(map);
                         }
                         Log.i("tag", currentBitmapList.size() + "一");
-                        listView.setAdapter(simpleAdpter);
-                        listView.setBackgroundColor(Color.WHITE);
-                        listView.setVisibility(View.VISIBLE);
+                        ImgAdapter imgAdapter = new ImgAdapter(ChooseActivity.this, currentBitmapList);
+                        //glide into()先将gif加载到headerview的imgshow中
+                        imgAdapter.setHeaderView(headerView);
+                        listView.setAdapter(imgAdapter);
+                        //listView.setAdapter(imgAdapter);
+                        //listView.setBackgroundColor(Color.argb(255,249,243,243));
                         canShowCreateButton();
                         return false;
                     }
@@ -234,7 +201,6 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
                 .error(R.mipmap.ic_launcher)
                 .crossFade(1500)
                 .into(imgShow);
-        //canShowCreateButton();
     }
 
     @Override
@@ -249,10 +215,16 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
     public void canShowCreateButton() {
         if (currentBitmapList != null && currentBitmapList.size() > 0) {
             btnCreate.setEnabled(true);
+            btnCreate.setVisibility(View.VISIBLE);
         } else {
             btnCreate.setEnabled(false);
+            btnCreate.setVisibility(View.INVISIBLE);
         }
     }
 
-
+    @Override
+    public void rootFailure() {
+        new MyFragment("提示", "请授予root权限").show(getFragmentManager(), "get_root_false");
+        Log.i("tag", "false");
+    }
 }

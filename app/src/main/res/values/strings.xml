@@ -2,5 +2,6 @@
     <string name="app_name">boot_anim</string>
     <string name="cancle">取消</string>
     <string name="confirm">确定</string>
-
+    <string name="author">by_XH</string>
+    <string name="empty_listview">还没有选择照片...</string>
 </resources>
